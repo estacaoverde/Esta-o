@@ -3,95 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estação Verde - Caixa</title>
-
+<title>Caixa - Estação Verde</title>
 <link rel="stylesheet" href="style.css">
-<link rel="icon" href="logo.png">
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  getDocs, 
-  updateDoc, 
-  doc, 
-  deleteDoc 
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBW16QaeeTYoS3J4xi0ZOJskO8Y7Smgh1M",
-  authDomain: "matheus-da6a8.firebaseapp.com",
-  projectId: "matheus-da6a8",
-  storageBucket: "matheus-da6a8.firebasestorage.app",
-  messagingSenderId: "28833831907",
-  appId: "1:28833831907:web:8ee2efc9f118e826ad1ed6"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.db = db;
-window.firebaseTools = { collection, addDoc, getDocs, updateDoc, doc, deleteDoc };
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-
 <body>
 
-<div id="loginTela" class="login">
-  <h2>Estação Verde</h2>
-  <input type="text" id="usuario" placeholder="Usuário">
-  <input type="password" id="senha" placeholder="Senha">
+<div id="loginTela">
+  <img src="logo.png" style="max-width:200px; display:block; margin:auto;">
+  <h2>Login</h2>
+  <input id="usuario" placeholder="Usuário">
+  <input id="senha" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
 </div>
 
 <div id="sistema" class="escondido">
 
-<header>
-<h1>🌿 Caixa Estação Verde</h1>
-<div id="statusCaixa" class="status fechado">CAIXA FECHADO</div>
-</header>
+<div style="text-align:center; margin-bottom:20px;">
+  <img src="logo.png" style="max-width:250px;">
+</div>
 
-<div class="botoes">
 <button onclick="abrirCaixa()">Abrir Caixa</button>
 <button onclick="fecharCaixa()">Fechar Caixa</button>
+<p id="statusCaixa" class="status fechado">CAIXA FECHADO</p>
+
+<hr>
+
+<button onclick="mostrarTela('produtosTela')">Produtos</button>
+<button onclick="mostrarTela('vendasTela')">Vendas</button>
+<button onclick="mostrarTela('historicoTela')">Histórico</button>
+
+<!-- PRODUTOS -->
+<div id="produtosTela" class="tela">
+  <h3>Cadastrar Produto</h3>
+  <input id="nomeProduto" placeholder="Nome">
+  <input id="precoProduto" type="number" placeholder="Preço">
+  <input id="estoqueProduto" type="number" placeholder="Estoque">
+  <button onclick="salvarProduto()">Salvar</button>
+
+  <h3>Lista de Produtos</h3>
+  <div id="listaProdutos"></div>
 </div>
 
-<nav>
-<button onclick="mostrarTela('produtos')">Produtos</button>
-<button onclick="mostrarTela('vendas')">Vendas</button>
-<button onclick="mostrarTela('historico')">Histórico</button>
-</nav>
+<!-- VENDAS -->
+<div id="vendasTela" class="tela escondido">
+  <h3>Buscar Produto</h3>
+  <input id="buscar" placeholder="Nome do produto" onkeyup="buscarProduto()">
+  <div id="resultadoBusca"></div>
 
-<section id="produtos" class="tela">
-<h2>Cadastro de Produtos</h2>
-<input type="text" id="nomeProduto" placeholder="Nome">
-<input type="number" id="precoProduto" placeholder="Preço">
-<input type="number" id="estoqueProduto" placeholder="Estoque">
-<button onclick="salvarProduto()">Salvar</button>
-<div id="listaProdutos"></div>
-</section>
+  <h3>Dados da Venda</h3>
+  <input id="nomeCliente" placeholder="Nome do Cliente">
+  <select id="formaPagamento">
+    <option value="Dinheiro">Dinheiro</option>
+    <option value="Pix">Pix</option>
+    <option value="Cartão Crédito">Cartão Crédito</option>
+    <option value="Cartão Débito">Cartão Débito</option>
+  </select>
 
-<section id="vendas" class="tela escondido">
-<h2>Nova Venda</h2>
-<input type="text" id="buscar" placeholder="Buscar produto" oninput="buscarProduto()">
-<div id="resultadoBusca"></div>
+  <h3>Carrinho</h3>
+  <div id="carrinhoDiv"></div>
+  <h3>Total: R$ <span id="total">0.00</span></h3>
+  <button onclick="finalizarVenda()">Finalizar Venda</button>
+</div>
 
-<h3>Carrinho</h3>
-<div id="carrinho"></div>
-
-<h2>Total: R$ <span id="total">0.00</span></h2>
-<button onclick="finalizarVenda()">Finalizar Venda</button>
-</section>
-
-<section id="historico" class="tela escondido">
-<h2>Histórico de Vendas</h2>
-<div id="listaHistorico"></div>
-</section>
+<!-- HISTÓRICO -->
+<div id="historicoTela" class="tela escondido">
+  <h3>Histórico de Vendas</h3>
+  <button onclick="gerarPDF()">Gerar PDF do Dia</button>
+  <button onclick="gerarRelatorioMensal()">Relatório Mensal</button>
+  <div id="listaHistorico"></div>
+</div>
 
 </div>
 
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>

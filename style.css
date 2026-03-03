@@ -1,70 +1,62 @@
 body {
-  font-family: Arial;
-  margin: 0;
-  background: #e9f7ec;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
+  background: linear-gradient(to bottom, #e8f5e9, #ffffff);
 }
 
-header {
-  background: #0d4d1f;
-  color: white;
-  text-align: center;
-  padding: 15px;
+h2, h3 {
+  color: #1b5e20;
 }
 
-.login {
-  text-align: center;
-  margin-top: 100px;
-}
-
-input {
-  display: block;
-  margin: 10px auto;
-  padding: 8px;
-  width: 80%;
+input, select {
+  padding: 10px;
+  margin: 6px 0;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #c8e6c9;
 }
 
 button {
-  background: #1c7c34;
-  color: white;
+  padding: 10px;
+  margin: 6px 0;
+  width: 100%;
+  border-radius: 8px;
   border: none;
-  padding: 8px 15px;
-  margin: 5px;
+  background: #2e7d32;
+  color: white;
+  font-weight: bold;
   cursor: pointer;
 }
 
 button:hover {
-  background: #145c26;
-}
-
-nav {
-  text-align: center;
-  margin: 10px;
-}
-
-.tela {
-  padding: 20px;
+  background: #1b5e20;
 }
 
 .card {
   background: white;
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 5px;
-}
-
-.status {
-  padding: 5px;
-  margin-top: 10px;
-}
-
-.aberto {
-  background: green;
-}
-
-.fechado {
-  background: red;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
 }
 
 .escondido {
   display: none;
-  }
+}
+
+.status {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.aberto { color: green; }
+.fechado { color: red; }
+
+#loginTela {
+  max-width: 400px;
+  margin: auto;
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}

@@ -1,42 +1,92 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+// 🔥 COLOQUE SEUS DADOS DO FIREBASE AQUI
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_AUTH_DOMAIN",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_BUCKET",
+  messagingSenderId: "SEU_ID",
+  appId: "SEU_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 let caixaAberto = false;
 let carrinho = [];
 let total = 0;
+let listaCache = [];
 
-function login() {
+// ================= LOGIN =================
+window.login = function () {
   if (usuario.value === "Nerys" && senha.value === "2020") {
     loginTela.classList.add("escondido");
     sistema.classList.remove("escondido");
     carregarProdutos();
     carregarHistorico();
   } else {
-    alert("Usuário ou senha incorretos!");
+    alert("Login incorreto");
   }
-}
+};
 
-function abrirCaixa() {
+// ================= CAIXA =================
+window.abrirCaixa = () => {
   caixaAberto = true;
   statusCaixa.innerText = "CAIXA ABERTO";
   statusCaixa.className = "status aberto";
-}
+};
 
-function fecharCaixa() {
+window.fecharCaixa = () => {
   caixaAberto = false;
   statusCaixa.innerText = "CAIXA FECHADO";
   statusCaixa.className = "status fechado";
-}
+};
 
-function mostrarTela(id) {
+window.mostrarTela = id => {
   document.querySelectorAll(".tela").forEach(t => t.classList.add("escondido"));
   document.getElementById(id).classList.remove("escondido");
+};
+
+// ================= PRODUTOS =================
+function carregarProdutos() {
+  onSnapshot(collection(db, "produtos"), snapshot => {
+    listaProdutos.innerHTML = "";
+    listaCache = [];
+
+    snapshot.forEach(docu => {
+      const p = docu.data();
+      const id = docu.id;
+
+      listaCache.push({ id, ...p });
+
+      listaProdutos.innerHTML += `
+      <div class="card">
+        <b>${p.nome}</b><br>
+        Preço: R$ ${p.preco}<br>
+        Estoque: ${p.estoque}
+        <br><br>
+
+        <button onclick="editarProduto('${id}')">Editar</button>
+        <button onclick="excluirProduto('${id}')">Excluir</button>
+        <button onclick="adicionarEstoque('${id}')">+ Estoque</button>
+        <button onclick="removerEstoque('${id}')">- Estoque</button>
+      </div>`;
+    });
+  });
 }
 
-// ==========================
-// PRODUTOS
-// ==========================
-
-async function salvarProduto() {
-  const { collection, addDoc } = firebaseTools;
-
+window.salvarProduto = async () => {
   await addDoc(collection(db, "produtos"), {
     nome: nomeProduto.value,
     preco: parseFloat(precoProduto.value),
@@ -46,156 +96,196 @@ async function salvarProduto() {
   nomeProduto.value = "";
   precoProduto.value = "";
   estoqueProduto.value = "";
+};
 
-  carregarProdutos();
-}
-
-async function carregarProdutos() {
-  const { collection, getDocs, deleteDoc, doc, updateDoc } = firebaseTools;
-
-  listaProdutos.innerHTML = "";
-  const snapshot = await getDocs(collection(db, "produtos"));
-
-  snapshot.forEach(documento => {
-    const p = documento.data();
-    const id = documento.id;
-
-    listaProdutos.innerHTML += `
-    <div class="card">
-      <b>${p.nome}</b> - R$ ${p.preco} - Estoque: ${p.estoque}
-      <br>
-      <button onclick="editarProduto('${id}','${p.nome}',${p.preco},${p.estoque})">Editar</button>
-      <button onclick="excluirProduto('${id}')">Excluir</button>
-    </div>`;
-  });
-}
-
-async function excluirProduto(id) {
-  const { deleteDoc, doc } = firebaseTools;
+window.excluirProduto = async id => {
   await deleteDoc(doc(db, "produtos", id));
-  carregarProdutos();
-}
+};
 
-async function editarProduto(id, nomeAtual, precoAtual, estoqueAtual) {
-  const novoNome = prompt("Novo nome:", nomeAtual);
-  const novoPreco = prompt("Novo preço:", precoAtual);
-  const novoEstoque = prompt("Novo estoque:", estoqueAtual);
+window.editarProduto = async id => {
+  const p = listaCache.find(x => x.id === id);
 
-  const { updateDoc, doc } = firebaseTools;
+  const novoNome = prompt("Novo nome:", p.nome);
+  const novoPreco = prompt("Novo preço:", p.preco);
+  const novoEstoque = prompt("Novo estoque:", p.estoque);
 
   await updateDoc(doc(db, "produtos", id), {
     nome: novoNome,
     preco: parseFloat(novoPreco),
     estoque: parseInt(novoEstoque)
   });
+};
 
-  carregarProdutos();
-}
+// ======== CONTROLE RÁPIDO DE ESTOQUE ========
+window.adicionarEstoque = async id => {
+  const produto = listaCache.find(p => p.id === id);
+  const quantidade = parseInt(prompt("Quantidade para adicionar:"));
 
-// ==========================
-// VENDAS
-// ==========================
-
-async function buscarProduto() {
-  const { collection, getDocs } = firebaseTools;
-
-  resultadoBusca.innerHTML = "";
-  const busca = buscar.value.toLowerCase();
-  const snapshot = await getDocs(collection(db, "produtos"));
-
-  snapshot.forEach(documento => {
-    const p = documento.data();
-    const id = documento.id;
-
-    if (p.nome.toLowerCase().includes(busca) && p.estoque > 0) {
-      resultadoBusca.innerHTML += `
-      <div class="card">
-        ${p.nome} - R$ ${p.preco} - Estoque: ${p.estoque}
-        <button onclick="adicionarCarrinho('${id}','${p.nome}',${p.preco},${p.estoque})">Adicionar</button>
-      </div>`;
-    }
-  });
-}
-
-function adicionarCarrinho(id, nome, preco, estoque) {
-  if (estoque <= 0) {
-    alert("Sem estoque!");
+  if (!quantidade || quantidade <= 0) {
+    alert("Quantidade inválida");
     return;
   }
 
-  carrinho.push({ id, nome, preco });
-  total += preco;
+  await updateDoc(doc(db, "produtos", id), {
+    estoque: produto.estoque + quantidade
+  });
+};
+
+window.removerEstoque = async id => {
+  const produto = listaCache.find(p => p.id === id);
+  const quantidade = parseInt(prompt("Quantidade para remover:"));
+
+  if (!quantidade || quantidade <= 0) {
+    alert("Quantidade inválida");
+    return;
+  }
+
+  if (produto.estoque - quantidade < 0) {
+    alert("Estoque não pode ficar negativo!");
+    return;
+  }
+
+  await updateDoc(doc(db, "produtos", id), {
+    estoque: produto.estoque - quantidade
+  });
+};
+
+// ================= VENDAS =================
+window.buscarProduto = () => {
+  resultadoBusca.innerHTML = "";
+  const texto = buscar.value.toLowerCase();
+
+  listaCache.forEach(p => {
+    if (p.nome.toLowerCase().includes(texto) && p.estoque > 0) {
+      resultadoBusca.innerHTML += `
+      <div class="card">
+        ${p.nome} - R$ ${p.preco}
+        <button onclick="adicionarCarrinho('${p.id}')">Adicionar</button>
+      </div>`;
+    }
+  });
+};
+
+window.adicionarCarrinho = id => {
+  const p = listaCache.find(x => x.id === id);
+  carrinho.push(p);
+  total += p.preco;
   atualizarCarrinho();
-}
+};
 
 function atualizarCarrinho() {
   carrinhoDiv.innerHTML = "";
   carrinho.forEach(p => {
     carrinhoDiv.innerHTML += `<div>${p.nome} - R$ ${p.preco}</div>`;
   });
-  total.innerText = total.toFixed(2);
+  document.getElementById("total").innerText = total.toFixed(2);
 }
 
-async function finalizarVenda() {
+window.finalizarVenda = async () => {
   if (!caixaAberto) {
-    alert("Abra o caixa primeiro!");
+    alert("Abra o caixa!");
     return;
   }
 
-  const { collection, addDoc, updateDoc, doc, getDoc } = firebaseTools;
+  if (carrinho.length === 0) {
+    alert("Carrinho vazio!");
+    return;
+  }
 
-  // Descontar estoque
+  const cliente = nomeCliente.value || "Não informado";
+  const pagamento = formaPagamento.value;
+
   for (let item of carrinho) {
-    const produtoRef = doc(db, "produtos", item.id);
-    const produtoSnap = await firebaseTools.getDocs(collection(db,"produtos"));
-    
-    await updateDoc(produtoRef, {
-      estoque: firebase.firestore.FieldValue.increment(-1)
+    await updateDoc(doc(db, "produtos", item.id), {
+      estoque: item.estoque - 1
     });
   }
 
   await addDoc(collection(db, "vendas"), {
     carrinho,
     total,
+    cliente,
+    pagamento,
     data: new Date().toLocaleString()
   });
 
   carrinho = [];
   total = 0;
+  nomeCliente.value = "";
   atualizarCarrinho();
-  carregarProdutos();
-  carregarHistorico();
+
   alert("Venda finalizada!");
+};
+
+// ================= HISTÓRICO =================
+function carregarHistorico() {
+  onSnapshot(collection(db, "vendas"), snapshot => {
+    listaHistorico.innerHTML = "";
+    snapshot.forEach(docu => {
+      const v = docu.data();
+      listaHistorico.innerHTML += `
+      <div class="card">
+        ${v.data}<br>
+        Cliente: ${v.cliente}<br>
+        Pagamento: ${v.pagamento}<br>
+        Total: R$ ${v.total}
+      </div>`;
+    });
+  });
 }
 
-// ==========================
-// HISTÓRICO
-// ==========================
+// ================= PDF DIÁRIO =================
+window.gerarPDF = async () => {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
 
-async function carregarHistorico() {
-  const { collection, getDocs } = firebaseTools;
+  const img = new Image();
+  img.src = "logo.png";
+  await new Promise(r => img.onload = r);
 
-  listaHistorico.innerHTML = "";
-  let totalDia = 0;
+  pdf.addImage(img, "PNG", 55, 5, 100, 30);
 
-  const hoje = new Date().toLocaleDateString();
   const snapshot = await getDocs(collection(db, "vendas"));
+  let y = 45;
+  let totalDia = 0;
+  const hoje = new Date().toLocaleDateString();
 
-  snapshot.forEach(doc => {
-    const v = doc.data();
+  snapshot.forEach(docu => {
+    const v = docu.data();
     if (v.data.includes(hoje)) {
+      pdf.text(`${v.data} - R$ ${v.total}`, 20, y);
+      y += 8;
       totalDia += v.total;
     }
-
-    listaHistorico.innerHTML += `
-    <div class="card">
-      ${v.data} <br>
-      Total: R$ ${v.total}
-    </div>`;
   });
 
-  listaHistorico.innerHTML += `
-  <div class="card" style="background:#d4f5d4">
-    <b>Total vendido hoje: R$ ${totalDia.toFixed(2)}</b>
-  </div>`;
+  pdf.text(`TOTAL DO DIA: R$ ${totalDia.toFixed(2)}`, 20, y + 10);
+  pdf.save("Relatorio_Dia.pdf");
+};
+
+// ================= PDF MENSAL =================
+window.gerarRelatorioMensal = async () => {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+
+  const snapshot = await getDocs(collection(db, "vendas"));
+  let totalMes = 0;
+  let y = 20;
+
+  const mes = new Date().getMonth();
+  const ano = new Date().getFullYear();
+
+  snapshot.forEach(docu => {
+    const v = docu.data();
+    const data = new Date(v.data);
+
+    if (data.getMonth() === mes && data.getFullYear() === ano) {
+      pdf.text(`${v.data} - R$ ${v.total}`, 20, y);
+      y += 8;
+      totalMes += v.total;
     }
+  });
+
+  pdf.text(`TOTAL DO MÊS: R$ ${totalMes.toFixed(2)}`, 20, y + 10);
+  pdf.save("Relatorio_Mensal.pdf");
+};

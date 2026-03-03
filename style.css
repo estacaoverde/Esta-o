@@ -1,31 +1,91 @@
-body{
-font-family:Arial;
-padding:15px;
-background:#f4f4f4;
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f5f3;
+  margin: 0;
+  padding: 15px;
 }
 
-input,button{
-padding:10px;
-margin:5px 0;
-width:100%;
-font-size:16px;
+.topo {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-button{
-background:green;
-color:white;
-border:none;
-border-radius:5px;
+.logo {
+  width: 180px;
+  margin-bottom: 10px;
 }
 
-.menu button{
-width:32%;
+.status {
+  font-weight: bold;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 5px;
 }
 
-.card{
-background:white;
-padding:10px;
-margin:5px 0;
-border-radius:5px;
-box-shadow:0 0 5px rgba(0,0,0,0.1);
+.aberto {
+  background: #d4edda;
+  color: #155724;
+}
+
+.fechado {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.botoes-caixa {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-abrir {
+  background: #1e7d32;
+}
+
+.btn-fechar {
+  background: #c62828;
+}
+
+button {
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.menu {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.menu button {
+  flex: 1;
+  background: #2e7d32;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.tela {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-top: 15px;
+}
+
+.card {
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
 }

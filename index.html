@@ -3,76 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Caixa - Estação Verde</title>
+<title>Estação Verde - Caixa</title>
 
-<link rel="icon" type="image/png" href="logo.png">
-<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="logo.png">
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  updateDoc, 
+  doc, 
+  deleteDoc 
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_DOMINIO",
-  projectId: "SEU_PROJECT_ID"
+  apiKey: "AIzaSyBW16QaeeTYoS3J4xi0ZOJskO8Y7Smgh1M",
+  authDomain: "matheus-da6a8.firebaseapp.com",
+  projectId: "matheus-da6a8",
+  storageBucket: "matheus-da6a8.firebasestorage.app",
+  messagingSenderId: "28833831907",
+  appId: "1:28833831907:web:8ee2efc9f118e826ad1ed6"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.db = db;
-window.firebase = { collection, addDoc, getDocs, updateDoc, doc };
+window.firebaseTools = { collection, addDoc, getDocs, updateDoc, doc, deleteDoc };
 </script>
 </head>
 
 <body>
 
-<div class="topo">
-  <img src="logo.png" class="logo">
-  <h1>Caixa Online</h1>
-  <div id="statusCaixa" class="status fechado">CAIXA FECHADO</div>
+<div id="loginTela" class="login">
+  <h2>Estação Verde</h2>
+  <input type="text" id="usuario" placeholder="Usuário">
+  <input type="password" id="senha" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
 </div>
 
-<div class="botoes-caixa">
-<button class="btn-abrir" onclick="abrirCaixa()">Abrir Caixa</button>
-<button class="btn-fechar" onclick="fecharCaixa()">Fechar Caixa</button>
+<div id="sistema" class="escondido">
+
+<header>
+<h1>🌿 Caixa Estação Verde</h1>
+<div id="statusCaixa" class="status fechado">CAIXA FECHADO</div>
+</header>
+
+<div class="botoes">
+<button onclick="abrirCaixa()">Abrir Caixa</button>
+<button onclick="fecharCaixa()">Fechar Caixa</button>
 </div>
 
-<div class="menu">
-<button onclick="mostrar('produtos')">Produtos</button>
-<button onclick="mostrar('vendas')">Vendas</button>
-<button onclick="mostrar('historico')">Histórico</button>
-</div>
+<nav>
+<button onclick="mostrarTela('produtos')">Produtos</button>
+<button onclick="mostrarTela('vendas')">Vendas</button>
+<button onclick="mostrarTela('historico')">Histórico</button>
+</nav>
 
-<div id="produtos" class="tela">
-<h2>Novo Produto</h2>
+<section id="produtos" class="tela">
+<h2>Cadastro de Produtos</h2>
 <input type="text" id="nomeProduto" placeholder="Nome">
 <input type="number" id="precoProduto" placeholder="Preço">
 <input type="number" id="estoqueProduto" placeholder="Estoque">
 <button onclick="salvarProduto()">Salvar</button>
-
-<h3>Lista de Produtos</h3>
 <div id="listaProdutos"></div>
-</div>
+</section>
 
-<div id="vendas" class="tela" style="display:none">
-<h2>Vendas</h2>
+<section id="vendas" class="tela escondido">
+<h2>Nova Venda</h2>
 <input type="text" id="buscar" placeholder="Buscar produto" oninput="buscarProduto()">
 <div id="resultadoBusca"></div>
 
-<h3>Total: R$ <span id="totalVenda">0</span></h3>
-<button onclick="finalizarVenda()">Finalizar Venda</button>
-</div>
+<h3>Carrinho</h3>
+<div id="carrinho"></div>
 
-<div id="historico" class="tela" style="display:none">
-<h2>Histórico</h2>
-<h3>Total do Dia: R$ <span id="totalDia">0</span></h3>
+<h2>Total: R$ <span id="total">0.00</span></h2>
+<button onclick="finalizarVenda()">Finalizar Venda</button>
+</section>
+
+<section id="historico" class="tela escondido">
+<h2>Histórico de Vendas</h2>
 <div id="listaHistorico"></div>
+</section>
+
 </div>
 
 <script src="app.js"></script>
-
 </body>
 </html>

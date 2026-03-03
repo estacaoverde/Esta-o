@@ -1,0 +1,31 @@
+body{
+font-family:Arial;
+padding:15px;
+background:#f4f4f4;
+}
+
+input,button{
+padding:10px;
+margin:5px 0;
+width:100%;
+font-size:16px;
+}
+
+button{
+background:green;
+color:white;
+border:none;
+border-radius:5px;
+}
+
+.menu button{
+width:32%;
+}
+
+.card{
+background:white;
+padding:10px;
+margin:5px 0;
+border-radius:5px;
+box-shadow:0 0 5px rgba(0,0,0,0.1);
+}

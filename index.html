@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caixa - Estação Verde</title>
+<link rel="stylesheet" href="style.css">
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } 
+from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB7ptfvhEub5QTksWlDMw8uXnNEe2kEN0s",
+  authDomain: "estacaoverde-cbff3.firebaseapp.com",
+  projectId: "estacaoverde-cbff3",
+  storageBucket: "estacaoverde-cbff3.firebasestorage.app",
+  messagingSenderId: "364079038854",
+  appId: "1:364079038854:web:c0458f9d45ee1830afac07"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.db = db;
+window.firebase = { collection, addDoc, getDocs, updateDoc, doc };
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="login">
+<h2>🌿 Estação Verde - Caixa</h2>
+<input type="password" id="senha" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+</div>
+
+<div id="sistema" style="display:none">
+
+<h2>🌿 Caixa Online</h2>
+
+<button onclick="abrirCaixa()">Abrir Caixa</button>
+<button onclick="fecharCaixa()">Fechar Caixa</button>
+
+<div class="menu">
+<button onclick="mostrar('produtos')">Produtos</button>
+<button onclick="mostrar('vendas')">Vendas</button>
+<button onclick="mostrar('historico')">Histórico</button>
+</div>
+
+<div id="produtos" class="tela">
+<h3>Novo Produto</h3>
+<input type="text" id="nomeProduto" placeholder="Nome">
+<input type="number" id="precoProduto" placeholder="Preço">
+<input type="number" id="estoqueProduto" placeholder="Estoque">
+<button onclick="salvarProduto()">Salvar</button>
+<div id="listaProdutos"></div>
+</div>
+
+<div id="vendas" class="tela" style="display:none">
+<h3>Nova Venda</h3>
+<input type="text" id="buscar" placeholder="Buscar produto" oninput="buscarProduto()">
+<div id="resultadoBusca"></div>
+<h2>Total: R$ <span id="total">0.00</span></h2>
+<button onclick="finalizarVenda()">Finalizar Venda</button>
+</div>
+
+<div id="historico" class="tela" style="display:none">
+<h3>Histórico</h3>
+<div id="listaHistorico"></div>
+</div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

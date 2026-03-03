@@ -1,9 +1,16 @@
-let carrinho = [];
 let caixaAberto = false;
+let carrinho = [];
+let total = 0;
 
-function mostrar(tela) {
-  document.querySelectorAll(".tela").forEach(div => div.style.display = "none");
-  document.getElementById(tela).style.display = "block";
+function login() {
+  if (usuario.value === "Nerys" && senha.value === "2020") {
+    loginTela.classList.add("escondido");
+    sistema.classList.remove("escondido");
+    carregarProdutos();
+    carregarHistorico();
+  } else {
+    alert("Usuário ou senha incorretos!");
+  }
 }
 
 function abrirCaixa() {
@@ -18,131 +25,177 @@ function fecharCaixa() {
   statusCaixa.className = "status fechado";
 }
 
+function mostrarTela(id) {
+  document.querySelectorAll(".tela").forEach(t => t.classList.add("escondido"));
+  document.getElementById(id).classList.remove("escondido");
+}
+
+// ==========================
+// PRODUTOS
+// ==========================
+
 async function salvarProduto() {
-  const { collection, addDoc, getDocs, updateDoc, doc } = window.firebase;
-  const db = window.db;
+  const { collection, addDoc } = firebaseTools;
 
-  const nome = nomeProduto.value.trim();
-  const preco = parseFloat(precoProduto.value);
-  const estoque = parseInt(estoqueProduto.value);
-
-  if (!nome || !preco || !estoque) return alert("Preencha tudo");
-
-  const snapshot = await getDocs(collection(db, "produtos"));
-  let existente = null;
-
-  snapshot.forEach(p => {
-    if (p.data().nome.toLowerCase() === nome.toLowerCase()) {
-      existente = { id: p.id, ...p.data() };
-    }
+  await addDoc(collection(db, "produtos"), {
+    nome: nomeProduto.value,
+    preco: parseFloat(precoProduto.value),
+    estoque: parseInt(estoqueProduto.value)
   });
 
-  if (existente) {
-    await updateDoc(doc(db, "produtos", existente.id), {
-      estoque: existente.estoque + estoque,
-      preco
-    });
-  } else {
-    await addDoc(collection(db, "produtos"), { nome, preco, estoque });
-  }
-
-  listarProdutos();
   nomeProduto.value = "";
   precoProduto.value = "";
   estoqueProduto.value = "";
+
+  carregarProdutos();
 }
 
-async function listarProdutos() {
-  const { collection, getDocs } = window.firebase;
-  const db = window.db;
+async function carregarProdutos() {
+  const { collection, getDocs, deleteDoc, doc, updateDoc } = firebaseTools;
 
-  const snapshot = await getDocs(collection(db, "produtos"));
   listaProdutos.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "produtos"));
 
-  snapshot.forEach(p => {
-    const data = p.data();
+  snapshot.forEach(documento => {
+    const p = documento.data();
+    const id = documento.id;
+
     listaProdutos.innerHTML += `
-      <div class="card">
-        <b>${data.nome}</b><br>
-        Preço: R$ ${data.preco}<br>
-        Estoque: ${data.estoque}
-      </div>
-    `;
+    <div class="card">
+      <b>${p.nome}</b> - R$ ${p.preco} - Estoque: ${p.estoque}
+      <br>
+      <button onclick="editarProduto('${id}','${p.nome}',${p.preco},${p.estoque})">Editar</button>
+      <button onclick="excluirProduto('${id}')">Excluir</button>
+    </div>`;
   });
 }
 
+async function excluirProduto(id) {
+  const { deleteDoc, doc } = firebaseTools;
+  await deleteDoc(doc(db, "produtos", id));
+  carregarProdutos();
+}
+
+async function editarProduto(id, nomeAtual, precoAtual, estoqueAtual) {
+  const novoNome = prompt("Novo nome:", nomeAtual);
+  const novoPreco = prompt("Novo preço:", precoAtual);
+  const novoEstoque = prompt("Novo estoque:", estoqueAtual);
+
+  const { updateDoc, doc } = firebaseTools;
+
+  await updateDoc(doc(db, "produtos", id), {
+    nome: novoNome,
+    preco: parseFloat(novoPreco),
+    estoque: parseInt(novoEstoque)
+  });
+
+  carregarProdutos();
+}
+
+// ==========================
+// VENDAS
+// ==========================
+
 async function buscarProduto() {
-  const { collection, getDocs } = window.firebase;
-  const db = window.db;
+  const { collection, getDocs } = firebaseTools;
 
-  const texto = buscar.value.toLowerCase();
-  const snapshot = await getDocs(collection(db, "produtos"));
   resultadoBusca.innerHTML = "";
+  const busca = buscar.value.toLowerCase();
+  const snapshot = await getDocs(collection(db, "produtos"));
 
-  snapshot.forEach(p => {
-    const data = p.data();
-    if (data.nome.toLowerCase().includes(texto)) {
+  snapshot.forEach(documento => {
+    const p = documento.data();
+    const id = documento.id;
+
+    if (p.nome.toLowerCase().includes(busca) && p.estoque > 0) {
       resultadoBusca.innerHTML += `
-        <div class="card" onclick="adicionarCarrinho('${data.nome}', ${data.preco})">
-          ${data.nome} - R$ ${data.preco}
-        </div>
-      `;
+      <div class="card">
+        ${p.nome} - R$ ${p.preco} - Estoque: ${p.estoque}
+        <button onclick="adicionarCarrinho('${id}','${p.nome}',${p.preco},${p.estoque})">Adicionar</button>
+      </div>`;
     }
   });
 }
 
-function adicionarCarrinho(nome, preco) {
-  carrinho.push({ nome, preco });
-  atualizarTotal();
+function adicionarCarrinho(id, nome, preco, estoque) {
+  if (estoque <= 0) {
+    alert("Sem estoque!");
+    return;
+  }
+
+  carrinho.push({ id, nome, preco });
+  total += preco;
+  atualizarCarrinho();
 }
 
-function atualizarTotal() {
-  let total = carrinho.reduce((soma, item) => soma + item.preco, 0);
-  totalVenda.innerText = total;
+function atualizarCarrinho() {
+  carrinhoDiv.innerHTML = "";
+  carrinho.forEach(p => {
+    carrinhoDiv.innerHTML += `<div>${p.nome} - R$ ${p.preco}</div>`;
+  });
+  total.innerText = total.toFixed(2);
 }
 
 async function finalizarVenda() {
-  if (!caixaAberto) return alert("Abra o caixa primeiro!");
+  if (!caixaAberto) {
+    alert("Abra o caixa primeiro!");
+    return;
+  }
 
-  const { collection, addDoc } = window.firebase;
-  const db = window.db;
+  const { collection, addDoc, updateDoc, doc, getDoc } = firebaseTools;
 
-  let total = carrinho.reduce((soma, item) => soma + item.preco, 0);
+  // Descontar estoque
+  for (let item of carrinho) {
+    const produtoRef = doc(db, "produtos", item.id);
+    const produtoSnap = await firebaseTools.getDocs(collection(db,"produtos"));
+    
+    await updateDoc(produtoRef, {
+      estoque: firebase.firestore.FieldValue.increment(-1)
+    });
+  }
 
   await addDoc(collection(db, "vendas"), {
-    itens: carrinho,
+    carrinho,
     total,
-    data: new Date()
+    data: new Date().toLocaleString()
   });
 
   carrinho = [];
-  atualizarTotal();
-  listarHistorico();
+  total = 0;
+  atualizarCarrinho();
+  carregarProdutos();
+  carregarHistorico();
   alert("Venda finalizada!");
 }
 
-async function listarHistorico() {
-  const { collection, getDocs } = window.firebase;
-  const db = window.db;
+// ==========================
+// HISTÓRICO
+// ==========================
 
-  const snapshot = await getDocs(collection(db, "vendas"));
+async function carregarHistorico() {
+  const { collection, getDocs } = firebaseTools;
+
   listaHistorico.innerHTML = "";
   let totalDia = 0;
 
-  snapshot.forEach(v => {
-    const data = v.data();
-    totalDia += data.total;
+  const hoje = new Date().toLocaleDateString();
+  const snapshot = await getDocs(collection(db, "vendas"));
+
+  snapshot.forEach(doc => {
+    const v = doc.data();
+    if (v.data.includes(hoje)) {
+      totalDia += v.total;
+    }
+
     listaHistorico.innerHTML += `
-      <div class="card">
-        Total: R$ ${data.total}<br>
-        Data: ${new Date(data.data.seconds * 1000).toLocaleString()}
-      </div>
-    `;
+    <div class="card">
+      ${v.data} <br>
+      Total: R$ ${v.total}
+    </div>`;
   });
 
-  totalDiaSpan = document.getElementById("totalDia");
-  totalDiaSpan.innerText = totalDia;
-}
-
-listarProdutos();
-listarHistorico();
+  listaHistorico.innerHTML += `
+  <div class="card" style="background:#d4f5d4">
+    <b>Total vendido hoje: R$ ${totalDia.toFixed(2)}</b>
+  </div>`;
+    }
